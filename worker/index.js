@@ -10,6 +10,7 @@ import path from "path";
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 const ffmpegPath = "/opt/ffmpeg";
 
+// Enable as an needed
 const resolutions = [
   { name: "480p", height: 480, bandwidth: 800000 },
 //   { name: "720p", height: 720, bandwidth: 1500000 },
