@@ -12,8 +12,8 @@ const ffmpegPath = "/opt/ffmpeg";
 
 const resolutions = [
   { name: "480p", height: 480, bandwidth: 800000 },
-  { name: "720p", height: 720, bandwidth: 1500000 },
-  { name: "1080p", height: 1080, bandwidth: 3000000 },
+//   { name: "720p", height: 720, bandwidth: 1500000 },
+//   { name: "1080p", height: 1080, bandwidth: 3000000 },
 ];
 
 export const handler = async (event) => {
@@ -80,10 +80,16 @@ export const handler = async (event) => {
         if (!fs.existsSync(hlsTmpBase)) {
           fs.mkdirSync(hlsTmpBase);
         }
-        // Clean previous HLS files
-        fs.readdirSync(hlsTmpBase).forEach((file) =>
-          fs.unlinkSync(path.join(hlsTmpBase, file))
-        );
+        // Clean previous HLS files and folders in /tmp/hls
+        fs.readdirSync(hlsTmpBase).forEach((entry) => {
+          const entryPath = path.join(hlsTmpBase, entry);
+          const stat = fs.statSync(entryPath);
+          if (stat.isDirectory()) {
+            fs.rmSync(entryPath, { recursive: true, force: true });
+          } else {
+            fs.unlinkSync(entryPath);
+          }
+        });
 
         // Store playlist entries for master playlist
         let masterPlaylistContent = "#EXTM3U\n#EXT-X-VERSION:3\n";
