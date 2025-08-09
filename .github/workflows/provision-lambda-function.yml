@@ -146,6 +146,22 @@ jobs:
             --function-name "$FUNCTION_NAME" \
             --zip-file fileb://function.zip
 
+          echo "Waiting for function to be Active..."
+          while true; do
+            STATUS=$(aws lambda get-function-configuration \
+              --function-name "$FUNCTION_NAME" \
+              --query 'LastUpdateStatus' --output text)
+            
+            if [ "$STATUS" = "Successful" ]; then
+              echo "Lambda update complete."
+              break
+            else
+              echo "Still updating... ($STATUS)"
+              sleep 5
+            fi
+          done
+
+          echo "Updating Lambda configuration..."
           aws lambda update-function-configuration \
             --function-name "$FUNCTION_NAME" \
             --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version} \
