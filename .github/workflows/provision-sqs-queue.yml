@@ -34,7 +34,7 @@ jobs:
         aws sqs create-queue \
           --queue-name "$QUEUE_NAME" \
           --attributes VisibilityTimeout=60 \
-          --tags Environment="$ENV" ManagedBy="GitHubActions" || \
+          --tags Key=Environment,Value="$ENV" Key=ManagedBy,Value=GitHubActions || \
           echo "$QUEUE_NAME already exists or creation failed"
 
     - name: Verify Queue
