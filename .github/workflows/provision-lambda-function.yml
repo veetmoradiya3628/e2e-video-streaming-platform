@@ -166,9 +166,31 @@ jobs:
             --ephemeral-storage '{"Size":2048}'
         fi
 
-        echo "Adding SQS trigger..."
-        aws lambda create-event-source-mapping \
-          --function-name "$FUNCTION_NAME" \
+        - name: Add or update SQS trigger
+
+    - name: Add or update SQS trigger
+      run: |
+        SQS_ARN="${{ github.event.inputs.sqs_arn }}"
+        FUNCTION="$FUNCTION_NAME"
+
+        # Get any existing event source mapping UUID for this Lambda + SQS
+        MAPPING_UUID=$(aws lambda list-event-source-mappings \
+          --function-name "$FUNCTION" \
           --event-source-arn "$SQS_ARN" \
-          --batch-size 1 \
-          --enabled
+          --query 'EventSourceMappings[0].UUID' \
+          --output text)
+
+        if [ "$MAPPING_UUID" != "None" ] && [ -n "$MAPPING_UUID" ]; then
+          echo "Updating existing SQS trigger mapping: $MAPPING_UUID"
+          aws lambda update-event-source-mapping \
+            --uuid "$MAPPING_UUID" \
+            --batch-size 1 \
+            --enabled
+        else
+          echo "Creating new SQS trigger mapping..."
+          aws lambda create-event-source-mapping \
+            --function-name "$FUNCTION" \
+            --event-source-arn "$SQS_ARN" \
+            --batch-size 1 \
+            --enabled
+        fi
