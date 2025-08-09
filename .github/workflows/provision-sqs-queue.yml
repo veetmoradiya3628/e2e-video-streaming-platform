@@ -44,13 +44,6 @@ jobs:
         # Save to GITHUB_ENV for later steps
         echo "QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
 
-    - name: Tag the Queue
-      run: |
-        ENV="${{ github.event.inputs.environment }}"
-        aws sqs tag-queue \
-          --queue-url "$QUEUE_URL" \
-          --tags Environment="$ENV" ManagedBy=GitHubActions
-
     - name: Verify Queue
       run: |
         aws sqs get-queue-attributes \
