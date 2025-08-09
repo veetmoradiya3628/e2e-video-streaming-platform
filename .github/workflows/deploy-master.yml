@@ -25,7 +25,7 @@ jobs:
     steps:
     - name: Trigger SQS workflow
       id: trigger_sqs
-      uses: peter-evans/workflow-dispatch@v1
+      uses: peter-evans/workflow-dispatch@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         repository: ${{ github.repository }}
@@ -34,12 +34,15 @@ jobs:
         inputs: |
           environment: ${{ github.event.inputs.environment }}
           queue_base_name: ${{ github.event.inputs.queue_base_name }}
+
     - name: Get SQS ARN
       id: get_arn
       run: |
-        # Get the ARN of the created SQS queue
         QUEUE_NAME="${{ github.event.inputs.queue_base_name }}-${{ github.event.inputs.environment }}"
-        SQS_ARN=$(aws sqs get-queue-attributes --queue-url $(aws sqs get-queue-url --queue-name "$QUEUE_NAME" --output text) --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+        SQS_ARN=$(aws sqs get-queue-attributes \
+          --queue-url $(aws sqs get-queue-url --queue-name "$QUEUE_NAME" --output text) \
+          --attribute-names QueueArn \
+          --query 'Attributes.QueueArn' --output text)
         echo "sqs_arn=$SQS_ARN" >> $GITHUB_OUTPUT
 
   s3:
@@ -48,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Trigger S3 workflow
-      uses: peter-evans/workflow-dispatch@v1
+      uses: peter-evans/workflow-dispatch@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         repository: ${{ github.repository }}
@@ -65,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Trigger Lambda workflow
-      uses: peter-evans/workflow-dispatch@v1
+      uses: peter-evans/workflow-dispatch@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         repository: ${{ github.repository }}
