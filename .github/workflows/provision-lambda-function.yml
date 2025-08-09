@@ -94,7 +94,10 @@ jobs:
 
           aws lambda update-function-configuration \
             --function-name "$FUNCTION_NAME" \
-            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version}
+            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version} \
+            --timeout 600 \
+            --memory-size 2048 \
+            --ephemeral-storage '{"Size":2048}'
         else
           echo "Creating Lambda function..."
           aws lambda create-function \
@@ -103,5 +106,8 @@ jobs:
             --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/lambda-execution-role \
             --handler index.handler \
             --zip-file fileb://function.zip \
-            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version}
+            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version} \
+            --timeout 600 \
+            --memory-size 2048 \
+            --ephemeral-storage '{"Size":2048}'
         fi
