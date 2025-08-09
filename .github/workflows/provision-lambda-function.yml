@@ -10,6 +10,7 @@ env:
   LAYER_NAME: my-ffmpeg-layer
   LAYER_ZIP_PATH: worker/ffmpeg-layer/lambda-ffmpeg-layer.zip
   SRC_DIR: worker/lambda-code
+  ROLE_NAME: lambda-execution-role
 
 jobs:
   deploy:
