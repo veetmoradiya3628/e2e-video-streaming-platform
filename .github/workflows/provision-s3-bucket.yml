@@ -11,6 +11,10 @@ on:
         description: "Base name for the S3 bucket (will append environment)"
         required: true
         default: "my-app-storage"
+      sqs_arn:
+        description: 'ARN of the SQS queue to trigger the Lambda function'
+        required: true
+        type: string
 
 jobs:
   provision:
@@ -46,3 +50,41 @@ jobs:
         aws s3api head-bucket --bucket "${{ github.event.inputs.bucket_base }}-${{ github.event.inputs.environment }}" \
           && echo "Bucket exists" \
           || echo "Bucket not found"
+
+    - name: Add S3 event notification for videos/original to SQS
+      run: |
+        ENV="${{ github.event.inputs.environment }}"
+        BASE="${{ github.event.inputs.bucket_base }}"
+        BUCKET_NAME="${BASE}-${ENV}"
+        SQS_ARN="${{ github.event.inputs.sqs_arn }}"
+
+        echo "Adding S3 event notification for videos/original/* to $SQS_ARN"
+
+        NOTIFICATION_CONFIG=$(cat <<EOF
+        {
+          "QueueConfigurations": [
+            {
+              "QueueArn": "$SQS_ARN",
+              "Events": [
+                "s3:ObjectCreated:*",
+                "s3:ObjectRestore:Completed"
+              ],
+              "Filter": {
+                "Key": {
+                  "FilterRules": [
+                    {
+                      "Name": "prefix",
+                      "Value": "videos/original/"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+        EOF
+        )
+
+        aws s3api put-bucket-notification-configuration \
+          --bucket "$BUCKET_NAME" \
+          --notification-configuration "$NOTIFICATION_CONFIG"

@@ -25,7 +25,7 @@ jobs:
 
     - name: Create SQS Queue
       id: create_queue
-      run: |
+      run: |+
         ENV="${{ github.event.inputs.environment }}"
         BASE="${{ github.event.inputs.queue_base_name }}"
         QUEUE_NAME="${BASE}-${ENV}"
@@ -54,6 +54,41 @@ jobs:
         # Save to GITHUB_ENV for later steps
         echo "QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
 
+    - name: Attach SQS Queue Policy for All S3 and All Lambda
+      run: |+
+        QUEUE_URL="$QUEUE_URL"
+        QUEUE_ARN=$(aws sqs get-queue-attributes --queue-url "$QUEUE_URL" --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+
+        POLICY=$(cat <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {"Service": "s3.amazonaws.com"},
+            "Action": "sqs:SendMessage",
+            "Resource": "$QUEUE_ARN"
+          },
+          {
+            "Effect": "Allow",
+            "Principal": {"Service": "lambda.amazonaws.com"},
+            "Action": [
+            "sqs:SendMessage",
+            "sqs:ReceiveMessage",
+            "sqs:DeleteMessage",
+            "sqs:GetQueueAttributes"
+            ],
+            "Resource": "$QUEUE_ARN"
+          }
+          ]
+        }
+        EOF
+        )
+
+        aws sqs set-queue-attributes \
+          --queue-url "$QUEUE_URL" \
+          --attributes Policy="$POLICY"
+                
     - name: Verify Queue
       run: |
         aws sqs get-queue-attributes \
