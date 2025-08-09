@@ -1,0 +1,54 @@
+name: Deploy Lambda with FFmpeg Layer
+
+on:
+  workflow_dispatch:
+
+
+env:
+  AWS_REGION: ap-south-1
+  FUNCTION_NAME: my-layered-function
+  LAYER_NAME: my-ffmpeg-layer
+  LAYER_ZIP_PATH: worker/ffmpeg-layer/lambda-ffmpeg-layer.zip
+  SRC_DIR: worker/lambda-code
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    # 1. Zip the Lambda function code
+    - name: Package Lambda function
+      run: |
+        cd $SRC_DIR
+        zip -r ../function.zip .
+        cd ..
+        mv function.zip ../function.zip
+        cd ..
+
+    # 2. Publish the Lambda Layer
+    - name: Publish Lambda layer
+      id: publish_layer
+      run: |
+        LAYER_VERSION=$(aws lambda publish-layer-version \
+          --layer-name $LAYER_NAME \
+          --zip-file fileb://$LAYER_ZIP_PATH \
+          --compatible-runtimes nodejs20.x \
+          --query Version --output text)
+        echo "layer_version=$LAYER_VERSION" >> $GITHUB_ENV
+
+    # 3. Create or update the Lambda function
+    - name: Create or update Lambda
+      run: |
+        if aws lambda get-function --function-name $FUNCTION_NAME >/dev/null 2>&1; then
+          echo "Updating Lambda function..."
+          aws lambda update-function-code \
