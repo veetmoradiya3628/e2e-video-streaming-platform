@@ -26,6 +26,42 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: Ensure Lambda execution role
+      run: |
+        set -e
+        ROLE_ARN="arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${ROLE_NAME}"
+
+        if aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
+          echo "Role $ROLE_NAME already exists."
+        else
+          echo "Creating IAM role $ROLE_NAME..."
+          TRUST_POLICY='{
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "lambda.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }'
+          echo "$TRUST_POLICY" > trust-policy.json
+
+          aws iam create-role \
+            --role-name "$ROLE_NAME" \
+            --assume-role-policy-document file://trust-policy.json
+
+          echo "Attaching AWSLambdaBasicExecutionRole policy..."
+          aws iam attach-role-policy \
+            --role-name "$ROLE_NAME" \
+            --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+          
+          echo "Waiting for IAM role to propagate..."
+          sleep 15
+        fi
+
     # 1. Zip the Lambda function code
     - name: Package Lambda function
       run: |
