@@ -182,8 +182,6 @@ jobs:
             --ephemeral-storage '{"Size":2048}'
         fi
 
-        - name: Add or update SQS trigger
-
     - name: Add or update SQS trigger
       run: |
         SQS_ARN="${{ github.event.inputs.sqs_arn }}"
