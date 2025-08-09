@@ -30,14 +30,24 @@ jobs:
         BASE="${{ github.event.inputs.queue_base_name }}"
         QUEUE_NAME="${BASE}-${ENV}"
 
-        echo "Creating SQS queue: $QUEUE_NAME"
+        echo "Checking if SQS queue exists: $QUEUE_NAME"
 
-        # Create queue and get URL
-        QUEUE_URL=$(aws sqs create-queue \
-          --queue-name "$QUEUE_NAME" \
-          --attributes VisibilityTimeout=60 \
-          --query 'QueueUrl' \
-          --output text)
+        # Try to get the queue URL (if exists)
+        QUEUE_URL=$(aws sqs get-queue-url --queue-name "$QUEUE_NAME" --query 'QueueUrl' --output text 2>/dev/null || true)
+
+        if [ -z "$QUEUE_URL" ] || [[ "$QUEUE_URL" == "None" ]]; then
+          echo "Queue does not exist. Creating SQS queue: $QUEUE_NAME"
+          QUEUE_URL=$(aws sqs create-queue \
+            --queue-name "$QUEUE_NAME" \
+            --attributes VisibilityTimeout=630 \
+            --query 'QueueUrl' \
+            --output text)
+        else
+          echo "Queue exists. Updating SQS queue: $QUEUE_NAME"
+          aws sqs set-queue-attributes \
+            --queue-url "$QUEUE_URL" \
+            --attributes VisibilityTimeout=630
+        fi
 
         echo "Queue URL: $QUEUE_URL"
 
