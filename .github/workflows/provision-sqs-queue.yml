@@ -24,6 +24,7 @@ jobs:
         aws-region: ap-south-1
 
     - name: Create SQS Queue
+      id: create_queue
       run: |
         ENV="${{ github.event.inputs.environment }}"
         BASE="${{ github.event.inputs.queue_base_name }}"
@@ -31,16 +32,27 @@ jobs:
 
         echo "Creating SQS queue: $QUEUE_NAME"
 
-        aws sqs create-queue \
+        # Create queue and get URL
+        QUEUE_URL=$(aws sqs create-queue \
           --queue-name "$QUEUE_NAME" \
           --attributes VisibilityTimeout=60 \
-          --tags Key=Environment,Value="$ENV" Key=ManagedBy,Value=GitHubActions || \
-          echo "$QUEUE_NAME already exists or creation failed"
+          --query 'QueueUrl' \
+          --output text)
+
+        echo "Queue URL: $QUEUE_URL"
+
+        # Save to GITHUB_ENV for later steps
+        echo "QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
+
+    - name: Tag the Queue
+      run: |
+        ENV="${{ github.event.inputs.environment }}"
+        aws sqs tag-queue \
+          --queue-url "$QUEUE_URL" \
+          --tags Environment="$ENV" ManagedBy=GitHubActions
 
     - name: Verify Queue
       run: |
-        ENV="${{ github.event.inputs.environment }}"
-        BASE="${{ github.event.inputs.queue_base_name }}"
-        aws sqs get-queue-url --queue-name "${BASE}-${ENV}" \
-          && echo "Queue exists" \
-          || echo "Queue not found"
+        aws sqs get-queue-attributes \
+          --queue-url "$QUEUE_URL" \
+          --attribute-names All
