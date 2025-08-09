@@ -1,0 +1,46 @@
+name: Provision SQS Queue
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment name (dev, staging, prod)"
+        required: true
+        default: "dev"
+      queue_base_name:
+        description: "Base name for the SQS queue"
+        required: true
+        default: "video-processing"
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Create SQS Queue
+      run: |
+        ENV="${{ github.event.inputs.environment }}"
+        BASE="${{ github.event.inputs.queue_base_name }}"
+        QUEUE_NAME="${BASE}-${ENV}"
+
+        echo "Creating SQS queue: $QUEUE_NAME"
+
+        aws sqs create-queue \
+          --queue-name "$QUEUE_NAME" \
+          --attributes VisibilityTimeout=60 \
+          --tags Environment="$ENV" ManagedBy="GitHubActions" || \
+          echo "$QUEUE_NAME already exists or creation failed"
+
+    - name: Verify Queue
+      run: |
+        ENV="${{ github.event.inputs.environment }}"
+        BASE="${{ github.event.inputs.queue_base_name }}"
+        aws sqs get-queue-url --queue-name "${BASE}-${ENV}" \
+          && echo "Queue exists" \
+          || echo "Queue not found"
