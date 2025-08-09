@@ -49,6 +49,22 @@ jobs:
     # 3. Create or update the Lambda function
     - name: Create or update Lambda
       run: |
-        if aws lambda get-function --function-name $FUNCTION_NAME >/dev/null 2>&1; then
+        if aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null 2>&1; then
           echo "Updating Lambda function..."
           aws lambda update-function-code \
+            --function-name "$FUNCTION_NAME" \
+            --zip-file fileb://function.zip
+
+          aws lambda update-function-configuration \
+            --function-name "$FUNCTION_NAME" \
+            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version}
+        else
+          echo "Creating Lambda function..."
+          aws lambda create-function \
+            --function-name "$FUNCTION_NAME" \
+            --runtime nodejs20.x \
+            --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/lambda-execution-role \
+            --handler index.handler \
+            --zip-file fileb://function.zip \
+            --layers arn:aws:lambda:${AWS_REGION}:${{ secrets.AWS_ACCOUNT_ID }}:layer:${LAYER_NAME}:${layer_version}
+        fi
