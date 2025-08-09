@@ -59,31 +59,29 @@ jobs:
         QUEUE_URL="$QUEUE_URL"
         QUEUE_ARN=$(aws sqs get-queue-attributes --queue-url "$QUEUE_URL" --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
 
-        POLICY=$(cat <<EOF
+        POLICY=$(jq -cn --arg QUEUE_ARN "$QUEUE_ARN" '
         {
-          "Version": "2012-10-17",
-          "Statement": [
-          {
-            "Effect": "Allow",
-            "Principal": {"Service": "s3.amazonaws.com"},
-            "Action": "sqs:SendMessage",
-            "Resource": "$QUEUE_ARN"
-          },
-          {
-            "Effect": "Allow",
-            "Principal": {"Service": "lambda.amazonaws.com"},
-            "Action": [
-            "sqs:SendMessage",
-            "sqs:ReceiveMessage",
-            "sqs:DeleteMessage",
-            "sqs:GetQueueAttributes"
-            ],
-            "Resource": "$QUEUE_ARN"
-          }
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Principal: {Service: "s3.amazonaws.com"},
+              Action: "sqs:SendMessage",
+              Resource: $QUEUE_ARN
+            },
+            {
+              Effect: "Allow",
+              Principal: {Service: "lambda.amazonaws.com"},
+              Action: [
+                "sqs:SendMessage",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              Resource: $QUEUE_ARN
+            }
           ]
-        }
-        EOF
-        )
+        }')
 
         aws sqs set-queue-attributes \
           --queue-url "$QUEUE_URL" \
