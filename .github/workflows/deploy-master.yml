@@ -1,0 +1,75 @@
+name: Master Deploy Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment name (dev, staging, prod)"
+        required: true
+        default: "dev"
+      bucket_base:
+        description: "Base name for the S3 bucket (will append environment)"
+        required: true
+        default: "my-app-storage"
+      queue_base_name:
+        description: "Base name for the SQS queue"
+        required: true
+        default: "video-processing"
+
+jobs:
+  sqs:
+    name: Provision SQS Queue
+    runs-on: ubuntu-latest
+    outputs:
+      sqs_arn: ${{ steps.get_arn.outputs.sqs_arn }}
+    steps:
+    - name: Trigger SQS workflow
+      id: trigger_sqs
+      uses: peter-evans/workflow-dispatch@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        workflow: provision-sqs-queue.yml
+        ref: ${{ github.ref }}
+        inputs: |
+          environment: ${{ github.event.inputs.environment }}
+          queue_base_name: ${{ github.event.inputs.queue_base_name }}
+    - name: Get SQS ARN
+      id: get_arn
+      run: |
+        # Get the ARN of the created SQS queue
+        QUEUE_NAME="${{ github.event.inputs.queue_base_name }}-${{ github.event.inputs.environment }}"
+        SQS_ARN=$(aws sqs get-queue-attributes --queue-url $(aws sqs get-queue-url --queue-name "$QUEUE_NAME" --output text) --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+        echo "sqs_arn=$SQS_ARN" >> $GITHUB_OUTPUT
+
+  s3:
+    name: Provision S3 Bucket
+    needs: [ sqs ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger S3 workflow
+      uses: peter-evans/workflow-dispatch@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        workflow: provision-s3-bucket.yml
+        ref: ${{ github.ref }}
+        inputs: |
+          environment: ${{ github.event.inputs.environment }}
+          bucket_base: ${{ github.event.inputs.bucket_base }}
+          sqs_arn: ${{ needs.sqs.outputs.sqs_arn }}
+
+  lambda:
+    name: Deploy Lambda with FFmpeg Layer
+    needs: [ s3 ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Lambda workflow
+      uses: peter-evans/workflow-dispatch@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        workflow: provision-lambda-function.yml
+        ref: ${{ github.ref }}
+        inputs: |
+          sqs_arn: ${{ needs.sqs.outputs.sqs_arn }}
