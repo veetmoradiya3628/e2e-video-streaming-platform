@@ -68,21 +68,11 @@ jobs:
           Version: "2012-10-17",
           Statement: [
             {
+              Sid: "Statement1",
               Effect: "Allow",
-              Principal: {Service: "s3.amazonaws.com"},
-              Action: "sqs:SendMessage",
-              Resource: $QUEUE_ARN
-            },
-            {
-              Effect: "Allow",
-              Principal: {Service: "lambda.amazonaws.com"},
-              Action: [
-                "sqs:SendMessage",
-                "sqs:ReceiveMessage",
-                "sqs:DeleteMessage",
-                "sqs:GetQueueAttributes"
-              ],
-              Resource: $QUEUE_ARN
+              Principal: "*",
+              Action: "sqs:*",
+              Resource: "*"
             }
           ]
         }')
