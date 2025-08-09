@@ -1,0 +1,48 @@
+name: Provision S3 Bucket
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment name (dev, staging, prod)"
+        required: true
+        default: "dev"
+      bucket_base:
+        description: "Base name for the S3 bucket (will append environment)"
+        required: true
+        default: "my-app-storage"
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Create S3 bucket
+      run: |
+        ENV="${{ github.event.inputs.environment }}"
+        BASE="${{ github.event.inputs.bucket_base }}"
+        BUCKET_NAME="${BASE}-${ENV}"
+
+        echo "Provisioning S3 bucket: $BUCKET_NAME"
+
+        aws s3api create-bucket \
+          --bucket "$BUCKET_NAME" \
+          --region ap-south-1 \
+          --create-bucket-configuration LocationConstraint=ap-south-1 || \
+          echo "Bucket already exists"
+
+        aws s3api put-bucket-tagging \
+          --bucket "$BUCKET_NAME" \
+          --tagging "TagSet=[{Key=Environment,Value=$ENV},{Key=ManagedBy,Value=GitHubActions}]"
+
+    - name: Verify bucket
+      run: |
+        aws s3api head-bucket --bucket "${{ github.event.inputs.bucket_base }}-${{ github.event.inputs.environment }}" \
+          && echo "Bucket exists" \
+          || echo "Bucket not found"
