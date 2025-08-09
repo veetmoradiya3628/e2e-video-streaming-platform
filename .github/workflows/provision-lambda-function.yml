@@ -2,7 +2,11 @@ name: Deploy Lambda with FFmpeg Layer
 
 on:
   workflow_dispatch:
-
+    inputs:
+      sqs_arn:
+        description: 'ARN of the SQS queue to trigger the Lambda function'
+        required: true
+        type: string
 
 env:
   AWS_REGION: ap-south-1
@@ -33,35 +37,79 @@ jobs:
         ROLE_ARN="arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${ROLE_NAME}"
 
         if aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
-          echo "Role $ROLE_NAME already exists."
-        else
-          echo "Creating IAM role $ROLE_NAME..."
-          TRUST_POLICY='{
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }'
-          echo "$TRUST_POLICY" > trust-policy.json
-
-          aws iam create-role \
+          echo "Role $ROLE_NAME already exists. Deleting..."
+          aws iam detach-role-policy \
             --role-name "$ROLE_NAME" \
-            --assume-role-policy-document file://trust-policy.json
-
-          echo "Attaching AWSLambdaBasicExecutionRole policy..."
-          aws iam attach-role-policy \
+            --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
+          aws iam delete-role-policy \
             --role-name "$ROLE_NAME" \
-            --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-          
-          echo "Waiting for IAM role to propagate..."
-          sleep 15
+            --policy-name sqs-s3-access || true
+          aws iam delete-role --role-name "$ROLE_NAME"
+          echo "Waiting for IAM role deletion to propagate..."
+          sleep 10
         fi
+
+        echo "Creating IAM role $ROLE_NAME..."
+        TRUST_POLICY='{
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        }'
+        echo "$TRUST_POLICY" > trust-policy.json
+
+        aws iam create-role \
+          --role-name "$ROLE_NAME" \
+          --assume-role-policy-document file://trust-policy.json
+
+        echo "Attaching AWSLambdaBasicExecutionRole policy..."
+        aws iam attach-role-policy \
+          --role-name "$ROLE_NAME" \
+          --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+        echo "Attaching inline policy for SQS and S3 access..."
+        cat > sqs-s3-policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:SendMessage",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+        EOF
+
+        aws iam put-role-policy \
+          --role-name "$ROLE_NAME" \
+          --policy-name sqs-s3-access \
+          --policy-document file://sqs-s3-policy.json
+
+        echo "Waiting for IAM role to propagate..."
+        sleep 15
 
     # 1. Zip the Lambda function code
     - name: Package Lambda function
@@ -86,6 +134,12 @@ jobs:
     # 3. Create or update the Lambda function
     - name: Create or update Lambda
       run: |
+        SQS_ARN="${{ github.event.inputs.sqs_arn }}"
+        if [ -z "$SQS_ARN" ]; then
+          echo "Error: SQS ARN not provided. Please provide sqs_arn as workflow input."
+          exit 1
+        fi
+
         if aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null 2>&1; then
           echo "Updating Lambda function..."
           aws lambda update-function-code \
@@ -111,3 +165,10 @@ jobs:
             --memory-size 2048 \
             --ephemeral-storage '{"Size":2048}'
         fi
+
+        echo "Adding SQS trigger..."
+        aws lambda create-event-source-mapping \
+          --function-name "$FUNCTION_NAME" \
+          --event-source-arn "$SQS_ARN" \
+          --batch-size 1 \
+          --enabled
