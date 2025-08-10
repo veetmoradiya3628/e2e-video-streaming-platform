@@ -13,3 +13,22 @@ export const getAllItems = async (tableName: string) => {
   } while (typeof data.LastEvaluatedKey !== "undefined");
   return items;
 };
+
+export const getPaginatedItems = async (
+  tableName: string,
+  limit: number,
+  exclusiveStartKey?: Record<string, any>
+) => {
+  const params: any = {
+    TableName: tableName,
+    Limit: limit,
+  };
+  if (exclusiveStartKey) {
+    params.ExclusiveStartKey = exclusiveStartKey;
+  }
+  const data = await dynamoDB.scan(params).promise();
+  return {
+    items: data.Items || [],
+    lastEvaluatedKey: data.LastEvaluatedKey,
+  };
+};
