@@ -27,9 +27,11 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "uuid": "^11.1.0"
   }

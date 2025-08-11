@@ -32,3 +32,15 @@ export const getPaginatedItems = async (
     lastEvaluatedKey: data.LastEvaluatedKey,
   };
 };
+
+export const getItemByParameter = async (
+  tableName: string,
+  key: Record<string, any>
+) => {
+  const params: any = {
+    TableName: tableName,
+    Key: key,
+  };
+  const data = await dynamoDB.get(params).promise();
+  return data.Item;
+};

@@ -5,7 +5,7 @@ basic UI layout design - done
 basic backend server setup - done
 e2e video transcoding function - done
 video upload API backend with s3 bucket - done
-user crud APIs
+user crud APIs - done
 user signup and login API feature
 home, sign up, sign in UI pages
 videos page API & UI integration
