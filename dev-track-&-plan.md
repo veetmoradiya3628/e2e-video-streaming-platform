@@ -23,5 +23,5 @@ video comments feature UI
 video comments feature backend API design, db change & integration with UI
 backend server build and dockerize
 UI build and dockerize
-
+Deploy this services to AWS Services as managed entity & have build and deploy pipeline workflow created for it
 
