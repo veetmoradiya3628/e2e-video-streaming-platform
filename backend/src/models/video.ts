@@ -5,7 +5,8 @@ export interface Video {
   description?: string;
   s3KeyOriginal: string; // S3 path of uploaded original file
   s3KeyHLS?: string; // S3 path of transcoded HLS output
-  resolutions?: string[]; // e.g., ["240p", "480p", "720p"]
+  resolutions?: string[]; // e.g., ["240p", "480p", "720p"],
+  videoKey?: string,
   status: "UPLOADING" | "PROCESSING" | "READY" | "FAILED";
   createdAt: string;
   updatedAt: string;

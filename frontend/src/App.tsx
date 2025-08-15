@@ -6,6 +6,7 @@ import VideoDetailPage from './pages/VideoDetailPage'
 import UploadVideoPage from './pages/UploadVideoPage'
 import MyVideosPage from './pages/MyVideosPage'
 import Navbar from './components/Navbar'
+import VideoPlayer from './components/VideoPlayer'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path='/video/:id' element={<VideoDetailPage />} />
           <Route path='/upload' element={<UploadVideoPage />} />
           <Route path='/my-videos' element={<MyVideosPage />} />
+          <Route path='/test' element={<VideoPlayer />} />
         </Routes>
       </Router>
     </>

@@ -21,7 +21,8 @@ export const uploadVideo = async (req: Request, res: Response) => {
     }
 
     const videoId = uuidv4();
-    const key = `videos/original/${videoId}-${req.file.originalname}`;
+    const videoKey = `${videoId}-${req.file.originalname}`;
+    const key = `videos/original/${videoKey}`;
     await uploadToS3(req.file.buffer, key, req.file.mimetype);
     const newVideo: Video = {
       videoId,
@@ -29,6 +30,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
       title,
       description,
       s3KeyOriginal: key,
+      videoKey: `${videoKey}`,
       status: "UPLOADING",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
