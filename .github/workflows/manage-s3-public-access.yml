@@ -1,0 +1,78 @@
+name: Manage S3 Public Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      bucket_arn:
+        description: "S3 bucket ARN (e.g. arn:aws:s3:::my-bucket)"
+        required: true
+      action:
+        description: "Action to perform: enable or disable"
+        required: true
+        default: "enable"
+        type: choice
+        options:
+        - enable
+        - disable
+
+jobs:
+  update-s3-config:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Extract bucket name from ARN
+      id: bucket
+      run: |
+        BUCKET_NAME=$(echo "${{ github.event.inputs.bucket_arn }}" | sed 's|arn:aws:s3:::||')
+        echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+
+    - name: Enable public read & CORS
+      if: ${{ github.event.inputs.action == 'enable' }}
+      run: |
+        # Set bucket policy
+        cat > policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadForMediaFiles",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::${{ steps.bucket.outputs.bucket_name }}/*"
+            }
+          ]
+        }
+        EOF
+        aws s3api put-bucket-policy --bucket "${{ steps.bucket.outputs.bucket_name }}" --policy file://policy.json
+
+        # Set CORS configuration
+        cat > cors.json <<EOF
+        [
+          {
+            "AllowedHeaders": ["*"],
+            "AllowedMethods": ["GET"],
+            "AllowedOrigins": ["*"],
+            "ExposeHeaders": []
+          }
+        ]
+        EOF
+        aws s3api put-bucket-cors --bucket "${{ steps.bucket.outputs.bucket_name }}" --cors-configuration file://cors.json
+
+    - name: Disable public read & CORS
+      if: ${{ github.event.inputs.action == 'disable' }}
+      run: |
+        # Remove bucket policy
+        aws s3api delete-bucket-policy --bucket "${{ steps.bucket.outputs.bucket_name }}"
+
+        # Remove CORS configuration
+        aws s3api delete-bucket-cors --bucket "${{ steps.bucket.outputs.bucket_name }}"
