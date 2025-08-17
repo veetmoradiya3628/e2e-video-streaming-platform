@@ -4,10 +4,12 @@ import { errorHandler } from "./middlewares/errorHandler";
 import videoRoutes from "./routes/videoRoutes";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 // Routes
 app.use("/api/items", itemRoutes);

@@ -1,69 +1,131 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  LinearProgress,
+  Snackbar,
+  Alert,
+  Grid,
+} from "@mui/material";
+import { videoApi } from "../services/api";
 
-interface UploadFormProps {
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    videoFile: File | null;
-    thumbnailFile: File | null;
-  }) => void;
-}
-
-const UploadForm = ({ onSubmit }: UploadFormProps) => {
+const UploadForm = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{
+    open: boolean;
+    type: "success" | "error";
+    message: string;
+  }>({ open: false, type: "success", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ title, description, videoFile, thumbnailFile });
+    if (!videoFile) {
+      setAlert({ open: true, type: "error", message: "Please select a video file!" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("userId", "1234"); // Replace with logged-in userId
+    formData.append("video", videoFile);
+
+    try {
+      setLoading(true);
+      await videoApi.upload(formData);
+      setAlert({ open: true, type: "success", message: "Video uploaded successfully!" });
+
+      setTitle("");
+      setDescription("");
+      setVideoFile(null);
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      setAlert({ open: true, type: "error", message: "Upload failed. Try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Paper className="p-6" elevation={3}>
-      <Typography variant="h5" gutterBottom>
-        Upload New Video
-      </Typography>
-      <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
-        <TextField
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          multiline
-          minRows={3}
-        />
-        <Button variant="outlined" component="label">
-          Select Video File
-          <input
-            type="file"
-            accept="video/*"
-            hidden
-            onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-            required
-          />
-        </Button>
-        <Button variant="outlined" component="label">
-          Select Thumbnail Image
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-          />
-        </Button>
-        <Button type="submit" variant="contained" color="primary">
-          Upload
-        </Button>
-      </Box>
-    </Paper>
+    <Card sx={{ maxWidth: 600, margin: "2rem auto", borderRadius: "16px", boxShadow: 3 }}>
+      {loading && <LinearProgress />}
+      <CardContent>
+        <Typography variant="h5" gutterBottom fontWeight={600}>
+          Upload New Video
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            <Grid item size={12}>
+              <TextField
+                label="Title"
+                fullWidth
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item size={12}>
+              <TextField
+                label="Description"
+                fullWidth
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                multiline
+                minRows={3}
+              />
+            </Grid>
+            <Grid item size={12}>
+              <Button variant="outlined" component="label" fullWidth>
+                {videoFile ? videoFile.name : "Select Video File"}
+                <input
+                  type="file"
+                  accept="video/*"
+                  hidden
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  required
+                />
+              </Button>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={loading}
+                sx={{ py: 1.2, fontWeight: 600, borderRadius: "12px" }}
+              >
+                {loading ? "Uploading..." : "Upload"}
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </CardContent>
+
+      {/* Alerts */}
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={3000}
+        onClose={() => setAlert({ ...alert, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          severity={alert.type}
+          onClose={() => setAlert({ ...alert, open: false })}
+          sx={{ width: "100%" }}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
+    </Card>
   );
 };
 

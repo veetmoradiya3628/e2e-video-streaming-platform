@@ -14,13 +14,15 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import { Link, useLocation } from 'react-router-dom';
-
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
+
 const navLinks = [
   { label: "Feed", to: "/feed" },
-  { label: "Upload", to: "/upload" },
+  { label: "Upload", to: "/video-upload" },
   { label: "My Videos", to: "/my-videos" },
 ];
 
@@ -32,25 +34,57 @@ export default function Navbar(props: Props) {
   const { window } = props || {};
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // ✅ check if user is authenticated
+  const isAuthenticated = Boolean(localStorage.getItem("auth_token"));
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
   };
 
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    handleMenuClose();
+    navigate("/"); // redirect to home page
+  };
+
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
-      <Typography variant="h6" sx={{ my: 2, fontWeight: 700 }} component={Link} to="/" color="#2563eb" style={{ textDecoration: 'none' }}>
+      <Typography
+        variant="h6"
+        sx={{ my: 2, fontWeight: 700 }}
+        component={Link}
+        to="/"
+        color="#2563eb"
+        style={{ textDecoration: 'none' }}
+      >
         🎬 VideoStream
       </Typography>
       <Divider />
       <List>
-        {navLinks.map((item) => (
-          <ListItem key={item.to} disablePadding>
-            <ListItemButton component={Link} to={item.to} selected={location.pathname === item.to} sx={{ textAlign: 'center' }}>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {isAuthenticated &&
+          navLinks.map((item) => (
+            <ListItem key={item.to} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.to}
+                selected={location.pathname === item.to}
+                sx={{ textAlign: 'center' }}
+              >
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            </ListItem>
+          ))}
       </List>
     </Box>
   );
@@ -60,43 +94,112 @@ export default function Navbar(props: Props) {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <AppBar component="nav" position="sticky" elevation={1} sx={{ bgcolor: 'white', borderBottom: 1, borderColor: 'grey.200', color: '#222' }}>
-        <Toolbar sx={{ maxWidth: '1120px', mx: 'auto', width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+      <AppBar
+        component="nav"
+        position="sticky"
+        elevation={1}
+        sx={{
+          bgcolor: 'white',
+          borderBottom: 1,
+          borderColor: 'grey.200',
+          color: '#222',
+        }}
+      >
+        <Toolbar
+          sx={{
+            maxWidth: '1120px',
+            mx: 'auto',
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Typography
               variant="h6"
               component={Link}
               to="/"
-              sx={{ color: '#2563eb', fontWeight: 700, textDecoration: 'none', mr: 2, letterSpacing: 1 }}
+              sx={{
+                color: '#2563eb',
+                fontWeight: 700,
+                textDecoration: 'none',
+                mr: 2,
+                letterSpacing: 1,
+              }}
             >
               🎬 VideoStream
             </Typography>
-            <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
-              {navLinks.map((item) => (
-                <Button
-                  key={item.to}
-                  component={Link}
-                  to={item.to}
-                  sx={{
-                    color: location.pathname === item.to ? '#fff' : '#374151',
-                    bgcolor: location.pathname === item.to ? '#2563eb' : 'transparent',
-                    fontWeight: 500,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    px: 2,
-                    '&:hover': {
-                      bgcolor: location.pathname === item.to ? '#1d4ed8' : '#f3f4f6',
-                      color: location.pathname === item.to ? '#fff' : '#1e293b',
-                    },
+            {isAuthenticated && (
+              <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
+                {navLinks.map((item) => (
+                  <Button
+                    key={item.to}
+                    component={Link}
+                    to={item.to}
+                    sx={{
+                      color: location.pathname === item.to ? '#fff' : '#374151',
+                      bgcolor:
+                        location.pathname === item.to ? '#2563eb' : 'transparent',
+                      fontWeight: 500,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      px: 2,
+                      '&:hover': {
+                        bgcolor:
+                          location.pathname === item.to ? '#1d4ed8' : '#f3f4f6',
+                        color:
+                          location.pathname === item.to ? '#fff' : '#1e293b',
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {isAuthenticated ? (
+              <>
+                <IconButton onClick={handleMenuOpen}>
+                  <Avatar sx={{ bgcolor: '#1976d2', width: 36, height: 36 }}>U</Avatar>
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={handleMenuClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
                   }}
                 >
-                  {item.label}
-                </Button>
-              ))}
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar sx={{ bgcolor: '#1976d2', width: 36, height: 36 }}>U</Avatar>
+                  <MenuItem
+                    onClick={() => {
+                      handleMenuClose();
+                      navigate("/profile");
+                    }}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                component={Link}
+                to="/"
+                variant="outlined"
+                sx={{ textTransform: "none" }}
+              >
+                Login / Register
+              </Button>
+            )}
+
             <IconButton
               color="inherit"
               aria-label="open drawer"

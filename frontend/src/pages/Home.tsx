@@ -1,9 +1,17 @@
-import { Paper, Typography, Divider, Button, Box } from "@mui/material";
+import { useState } from "react";
+import {
+  Paper,
+  Typography,
+  Divider,
+  Button,
+  Box,
+} from "@mui/material";
+import LoginDialog from "../components/LoginDialog";
+import RegisterDialog from "../components/RegisterDialog";
 
 const HomePage = () => {
-  const handleGoogleClick = () => {
-    console.log("Google sign-in clicked — backend integration pending");
-  };
+  const [openLogin, setOpenLogin] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
 
   return (
     <div
@@ -49,49 +57,30 @@ const HomePage = () => {
           sx={{ color: "text.secondary" }}
         >
           Watch, stream, and enjoy your favorite content anytime, anywhere.
-          Sign in to get started!
         </Typography>
 
-        {/* Google Sign-in Button */}
-        <Box display="flex" justifyContent="center" mt={4}>
+        <Box display="flex" flexDirection="column" gap={2} mt={3}>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => setOpenLogin(true)}
+          >
+            Login
+          </Button>
           <Button
             variant="outlined"
-            size="large"
-            onClick={handleGoogleClick}
-            sx={{
-              textTransform: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              borderColor: "#ccc",
-              color: "black",
-              px: 3,
-              fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "#f5f5f5",
-                borderColor: "#bbb",
-              },
-            }}
+            color="secondary"
+            fullWidth
+            onClick={() => setOpenRegister(true)}
           >
-            <img
-              src="https://www.svgrepo.com/show/355037/google.svg"
-              alt="Google"
-              style={{ width: 20, height: 20 }}
-            />
-            Continue with Google
+            Register
           </Button>
         </Box>
-
-        <Typography
-          variant="caption"
-          display="block"
-          align="center"
-          mt={2}
-          sx={{ color: "text.secondary" }}
-        >
-          By continuing, you agree to our Terms & Privacy Policy.
-        </Typography>
       </Paper>
+
+      <LoginDialog open={openLogin} onClose={() => setOpenLogin(false)} />
+      <RegisterDialog open={openRegister} onClose={() => setOpenRegister(false)} />
     </div>
   );
 };

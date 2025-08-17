@@ -7,6 +7,7 @@ import UploadVideoPage from './pages/UploadVideoPage'
 import MyVideosPage from './pages/MyVideosPage'
 import Navbar from './components/Navbar'
 import VideoPlayer from './components/VideoPlayer'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -15,10 +16,27 @@ function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<HomePage />} />
-          <Route path='/feed' element={<VideoFeedPage />} />
-          <Route path='/video/:id' element={<VideoDetailPage />} />
-          <Route path='/upload' element={<UploadVideoPage />} />
-          <Route path='/my-videos' element={<MyVideosPage />} />
+          <Route path='/feed' element={
+            <ProtectedRoute>
+              <VideoFeedPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/video/:id' element={
+            <ProtectedRoute>
+              <VideoDetailPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/video-upload' element={
+            <ProtectedRoute>
+              <UploadVideoPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/my-videos' element={
+            <ProtectedRoute>
+              <MyVideosPage />
+            </ProtectedRoute>
+          } />
+          {/* Video player yet to be integrated */}
           <Route path='/test' element={<VideoPlayer />} />
         </Routes>
       </Router>
