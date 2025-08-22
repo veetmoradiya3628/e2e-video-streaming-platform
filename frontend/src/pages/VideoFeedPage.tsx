@@ -1,35 +1,53 @@
-import { useState } from "react";
-import { Container, Typography, Box } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Container, Typography, Box, CircularProgress, Alert } from "@mui/material";
 import VideoList from "../components/VideoList";
-
-const mockVideos = [
-  {
-    id: "1",
-    title: "Amazing Nature Documentary",
-    thumbnail: "https://i3.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg",
-    uploader: "Alice",
-    views: 1200,
-  },
-  {
-    id: "2",
-    title: "React Tutorial for Beginners",
-    thumbnail: "https://i3.ytimg.com/vi/dGcsHMXbSOA/maxresdefault.jpg",
-    uploader: "Bob",
-    views: 980,
-  },
-  // Add more mock videos as needed
-];
+import { feedVideosApi } from "../services/api"; 
 
 const VideoFeedPage = () => {
-  const [videos] = useState(mockVideos);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{
+    open: boolean;
+    type: "success" | "error";
+    message: string;
+  }>({ open: false, type: "success", message: "" });
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true);
+        const resp = await feedVideosApi.list();
+        setVideos(resp.data.data || []);
+        setAlert({ open: true, type: "success", message: "Videos loaded!" });
+      } catch (err: any) {
+        console.error(err);
+        setAlert({ open: true, type: "error", message: "Failed to load videos" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
 
   return (
-    <Container maxWidth="lg" className="py-8">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" fontWeight={700} gutterBottom>
         Trending Videos
       </Typography>
+      {alert.open && (
+        <Box mb={2}>
+          <Alert severity={alert.type}>{alert.message}</Alert>
+        </Box>
+      )}
       <Box mt={4}>
-        <VideoList videos={videos} />
+        {loading ? (
+          <Box display="flex" justifyContent="center" mt={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <VideoList videos={videos} />
+        )}
       </Box>
     </Container>
   );

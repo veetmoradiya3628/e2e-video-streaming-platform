@@ -37,7 +37,9 @@ export const loginUser = async (req: Request, res: Response) => {
       options
     );
 
-    res.status(200).json({ token });
+    res
+      .status(200)
+      .json({ token, username, userId: userData.userId });
   } catch (error) {
     console.log(error);
     return res.status(500).json({

@@ -52,7 +52,8 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
             const token = resp.data.token;
             localStorage.setItem("auth_token", token);
             localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("user", JSON.stringify(resp.data.user)); // to get from backend and add again
+            localStorage.setItem("userId", resp.data.userId);
+            localStorage.setItem("username", resp.data.username);
 
             setAlert({
                 open: true,

@@ -26,3 +26,9 @@ export const authApi = {
     return api.post("/auth/login", body);
   },
 };
+
+export const feedVideosApi = {
+  list: async () => {
+    return api.get("/videos/list");
+  },
+};

@@ -4,11 +4,17 @@ import VideoCard from "./VideoCard";
 
 interface VideoListProps {
   videos: Array<{
-    id: string;
+    videoId: string;
+    videoKey: string;
+    userId: string;
+    updatedAt: string;
     title: string;
-    thumbnail: string;
-    uploader: string;
-    views: number;
+    thumbnailUrl: string;
+    s3KeyOriginal: string;
+    description: string;
+    createdAt: string;
+    username: string;
+    status: "UPLOADING" | "PROCESSING" | "UNPUBLISHED" | "PUBLISHED" | "FAILED";
     onClick?: () => void;
   }>;
 }
@@ -17,8 +23,8 @@ interface VideoListProps {
 const VideoList = ({ videos }: VideoListProps) => (
   <Grid container spacing={3 as GridProps['spacing']}>
     {videos.map((video) => (
-      <div key={video.id} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
-        <VideoCard {...video} />
+      <div key={video.videoId} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
+        <VideoCard title={video.title} thumbnail={video.thumbnailUrl} username={video.username} status={video.status} />
       </div>
     ))}
   </Grid>

@@ -4,6 +4,7 @@ import { Video } from "../models/video";
 import { dynamoDB } from "../config/aws";
 import { uploadToS3 } from "../services/s3Service";
 import { getAllItems } from "../services/dynamoDBService";
+import path from "path";
 
 export const uploadVideo = async (req: Request, res: Response) => {
   try {
@@ -33,7 +34,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
       videoKey: `${videoKey}`,
       status: "UPLOADING",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     await dynamoDB
@@ -54,10 +55,30 @@ export const uploadVideo = async (req: Request, res: Response) => {
 
 export const listVideos = async (req: Request, res: Response) => {
   try {
-    const data = await getAllItems(process.env.DYNAMODB_VIDEOS_TABLE as string);
+    const videoData = await getAllItems(
+      process.env.DYNAMODB_VIDEOS_TABLE as string
+    );
+    const userData = await getAllItems(
+      process.env.DYNAMODB_USERS_TABLE as string
+    );
+
+    const userMap: Record<string, string> = {};
+    userData.forEach((user) => {
+      userMap[user.userId] = user.username;
+    });
+
+    const respData = videoData.map((video) => ({
+      ...video,
+      thumbnailUrl:
+        process.env.S3_BASE_URL +
+        "/videos/thumbnails/" +
+        path.parse(video.videoKey).name +
+        ".png",
+      username: userMap[video.userId] || "Unknown",
+    }));
     return res.status(200).json({
       message: "videos data retrieved",
-      data,
+      data: respData,
     });
   } catch (error) {
     console.log(error);

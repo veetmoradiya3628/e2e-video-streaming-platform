@@ -36,8 +36,6 @@ function App() {
               <MyVideosPage />
             </ProtectedRoute>
           } />
-          {/* Video player yet to be integrated */}
-          <Route path='/test' element={<VideoPlayer />} />
         </Routes>
       </Router>
     </>

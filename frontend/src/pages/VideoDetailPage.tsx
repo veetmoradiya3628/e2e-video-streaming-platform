@@ -6,7 +6,7 @@ import CommentSection from "../components/CommentSection";
 const mockVideo = {
   id: "1",
   title: "Amazing Nature Documentary",
-  src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  src: "https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/0ec3207c-d86f-47b8-8df3-5f26df032d80-4k_Thetestdata/480p/index.m3u8",
   poster: "https://i3.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg",
   uploader: "Alice",
   views: 1200,
@@ -30,7 +30,9 @@ const VideoDetailPage = () => {
 
   return (
     <Container maxWidth="md" className="py-8">
-      <VideoPlayer src={mockVideo.src} poster={mockVideo.poster} />
+      <Box sx={{ mt: 3 }}>
+        <VideoPlayer srcUrl={mockVideo.src} />
+      </Box>
       <Typography variant="h5" fontWeight={700} mt={3} gutterBottom>
         {mockVideo.title}
       </Typography>

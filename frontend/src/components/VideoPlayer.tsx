@@ -3,16 +3,7 @@ import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
 
-// 480px - https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/48b82adb-7e3f-4d62-bb55-2483184b4622-SampleVideo_1280x720_5mb/480p/index.m3u8
-// masterUrl - https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/cf66c1eb-96fa-4198-817f-786b8d99cbc6-SampleVideo_1280x720_5mb/master.m3u8
-
-// 480px - large video
-// https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/b644aef9-0e6b-422a-92c9-c75dc20859c5-SampleVideo_1280x720_30mb/480p/index.m3u8
-
-// other good vidoes
-// https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/5b2172fd-e210-43ec-bb2a-b47025926eb8-3209177-uhd_2560_1440_25fps/480p/index.m3u8
-
-const VideoPlayer = () => {
+const VideoPlayer = ({ srcUrl }) => {
   const videoNode = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<Player | null>(null);
 
@@ -29,8 +20,8 @@ const VideoPlayer = () => {
       controls: true,
       preload: "auto",
       // fluid: true,
-      width: 800, // pixels
-      height: 450, // pixels
+      width: 852,
+      height: 450,
       playbackRates: [0.5, 1, 1.25, 1.5, 2], // speed control
       userActions: {
         hotkeys: true, // Enable built-in keyboard shortcuts
@@ -49,7 +40,7 @@ const VideoPlayer = () => {
       },
       sources: [
         {
-          src: "https://e2e-video-transcoding-dev.s3.ap-south-1.amazonaws.com/videos/hls/5b2172fd-e210-43ec-bb2a-b47025926eb8-3209177-uhd_2560_1440_25fps/480p/index.m3u8",
+          src: srcUrl,
           type: "application/x-mpegURL",
         },
       ],
