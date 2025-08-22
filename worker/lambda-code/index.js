@@ -13,8 +13,8 @@ const ffmpegPath = "/opt/ffmpeg";
 // Enable as an needed
 const resolutions = [
   { name: "480p", height: 480, bandwidth: 800000 },
-//   { name: "720p", height: 720, bandwidth: 1500000 },
-//   { name: "1080p", height: 1080, bandwidth: 3000000 },
+  { name: "720p", height: 720, bandwidth: 1500000 },
+  // { name: "1080p", height: 1080, bandwidth: 3000000 },
 ];
 
 export const handler = async (event) => {
