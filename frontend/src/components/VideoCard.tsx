@@ -1,10 +1,15 @@
 import { Card, CardMedia, CardContent, Typography, Box, Avatar, Chip } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 interface VideoCardProps {
+  videoId: string;
   title: string;
   thumbnail: string;
   username: string;
   status: "UPLOADING" | "PROCESSING" | "UNPUBLISHED" | "PUBLISHED" | "FAILED";
+  src: string;
+  description?: string;
+  comments?: Array<{ userId: string; commentText: string; createdAt: string }>;
   onClick?: () => void;
 }
 
@@ -16,13 +21,20 @@ const statusColors: Record<string, "success" | "warning" | "default"> = {
   FAILED: "warning",
   Draft: "default",
 };
-const VideoCard = ({ title, thumbnail, username, status, onClick }: VideoCardProps) => (
-  <Card
+const VideoCard = ({ videoId, title, thumbnail, username, status, src, description, comments, onClick }: VideoCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    const video = { videoId, title, thumbnail, username, status, src, description, comments };
+    navigate(`/video/${videoId}`, { state: video });
+  };
+
+
+  return (<Card
     className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
     sx={{ maxWidth: 320, borderRadius: 3 }}
-    onClick={onClick}
+    onClick={handleClick}
   >
-    {/* Thumbnail */}
     <CardMedia
       component="img"
       height="180"
@@ -31,9 +43,7 @@ const VideoCard = ({ title, thumbnail, username, status, onClick }: VideoCardPro
       sx={{ objectFit: "cover" }}
     />
 
-    {/* Card Content */}
     <CardContent>
-      {/* Title + Status */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
         <Typography variant="subtitle1" fontWeight={600} noWrap>
           {title}
@@ -46,7 +56,6 @@ const VideoCard = ({ title, thumbnail, username, status, onClick }: VideoCardPro
         />
       </Box>
 
-      {/* User Info */}
       <Box display="flex" alignItems="center" gap={1}>
         <Avatar sx={{ width: 24, height: 24 }}>{username[0]}</Avatar>
         <Typography variant="body2" color="text.secondary" noWrap>
@@ -54,7 +63,7 @@ const VideoCard = ({ title, thumbnail, username, status, onClick }: VideoCardPro
         </Typography>
       </Box>
     </CardContent>
-  </Card>
-);
+  </Card>)
+};
 
 export default VideoCard;

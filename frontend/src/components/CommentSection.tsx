@@ -11,10 +11,9 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 
 interface Comment {
-  id: string;
-  user: string;
-  text: string;
-  timestamp?: string;
+  userId: string;
+  commentText: string;
+  createdAt?: string;
 }
 
 interface CommentSectionProps {
@@ -61,7 +60,7 @@ const CommentSection = ({ comments, onAddComment }: CommentSectionProps) => {
       <Box display="flex" flexDirection="column" gap={2}>
         {comments.map((c) => (
           <Paper
-            key={c.id}
+            key={c.userId + c.commentText}
             sx={{
               p: 2,
               borderRadius: 2,
@@ -70,20 +69,20 @@ const CommentSection = ({ comments, onAddComment }: CommentSectionProps) => {
             }}
           >
             <Box display="flex" gap={2}>
-              <Avatar sx={{ bgcolor: "secondary.main" }}>{c.user[0]}</Avatar>
+              <Avatar sx={{ bgcolor: "secondary.main" }}>{c.userId[0]}</Avatar>
               <Box>
                 <Typography variant="subtitle2" fontWeight="500">
-                  {c.user}{" "}
+                  {c.userId}{" "}
                   <Typography
                     component="span"
                     variant="caption"
                     color="text.secondary"
                   >
-                    {c.timestamp || "Just now"}
+                    {c.createdAt || "Just now"}
                   </Typography>
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {c.text}
+                  {c.commentText}
                 </Typography>
               </Box>
             </Box>

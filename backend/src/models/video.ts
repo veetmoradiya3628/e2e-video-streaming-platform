@@ -6,8 +6,15 @@ export interface Video {
   s3KeyOriginal: string; // S3 path of uploaded original file
   s3KeyHLS?: string; // S3 path of transcoded HLS output
   resolutions?: string[]; // e.g., ["240p", "480p", "720p"],
-  videoKey?: string,
+  comments: VideoComment[];
+  videoKey?: string;
   status: "UPLOADING" | "PROCESSING" | "READY" | "FAILED";
   createdAt: string;
   updatedAt: string;
+}
+
+interface VideoComment {
+  commentText: string;
+  userId: string;
+  createdAt: string;
 }

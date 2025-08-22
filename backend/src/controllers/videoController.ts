@@ -33,6 +33,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
       s3KeyOriginal: key,
       videoKey: `${videoKey}`,
       status: "UPLOADING",
+      comments: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -74,6 +75,11 @@ export const listVideos = async (req: Request, res: Response) => {
         "/videos/thumbnails/" +
         path.parse(video.videoKey).name +
         ".png",
+      src:
+        process.env.S3_BASE_URL +
+        "/videos/hls/" +
+        video.videoKey.split(".")[0] +
+        "/480p/index.m3u8",
       username: userMap[video.userId] || "Unknown",
     }));
     return res.status(200).json({
@@ -84,6 +90,58 @@ export const listVideos = async (req: Request, res: Response) => {
     console.log(error);
     res.status(500).json({
       message: "List videos failed",
+    });
+  }
+};
+
+export const commentOnVideo = async (req: Request, res: Response) => {
+  try {
+    const { videoId } = req.params;
+    const { userId, commentText } = req.body;
+
+    if (!videoId || !userId || !commentText) {
+      return res.status(400).json({
+        message: "Missing required fields: videoId, userId, or commentText.",
+      });
+    }
+
+    const video = await dynamoDB
+      .get({
+        TableName: process.env.DYNAMODB_VIDEOS_TABLE!,
+        Key: { videoId },
+      })
+      .promise();
+
+    if (!video.Item) {
+      return res.status(404).json({
+        message: "Video not found",
+      });
+    }
+
+    const newComment = {
+      commentText,
+      userId,
+      createdAt: new Date().toISOString(),
+    };
+
+    video.Item.comments.push(newComment);
+    video.Item.updatedAt = new Date().toISOString();
+
+    await dynamoDB
+      .put({
+        TableName: process.env.DYNAMODB_VIDEOS_TABLE!,
+        Item: video.Item,
+      })
+      .promise();
+
+    res.status(200).json({
+      message: "Comment added successfully",
+      comment: newComment,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to add comment",
     });
   }
 };

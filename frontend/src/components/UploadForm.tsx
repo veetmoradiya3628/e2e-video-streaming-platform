@@ -34,7 +34,7 @@ const UploadForm = () => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("userId", "1234"); // Replace with logged-in userId
+    formData.append("userId", localStorage.getItem("userId") || "test-user");
     formData.append("video", videoFile);
 
     try {
