@@ -110,6 +110,10 @@ npm run dev
 - All infrastructure is provisioned via GitHub Actions workflows in `.github/workflows/`
 - See `deploy-master.yml` for orchestrated deployment of DynamoDB, SQS, S3, and Lambda
 
+
+### Worker Lambda Function
+
+See [`worker/README.md`](worker/README.md) for details on the Lambda function that processes video files (transcoding, thumbnails, etc.) in response to S3/SQS events.
 ---
 
 ## Screenshots
