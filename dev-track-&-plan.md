@@ -16,11 +16,8 @@ Tasks :-
 - video comments feature UI - done
 - video comments feature backend API design, db change & integration with UI - done
 - video comment delete feature - done
-- my videos page UI design
-- my videos API and backend integration
-- delete video 
-- profile page UI design
-- profile page API and backend integration
+- profile page UI design - done
+- profile page API and backend integration - done
 
 
 - backend server build and dockerize

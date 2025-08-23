@@ -4,9 +4,9 @@ import HomePage from './pages/Home'
 import VideoFeedPage from './pages/VideoFeedPage'
 import VideoDetailPage from './pages/VideoDetailPage'
 import UploadVideoPage from './pages/UploadVideoPage'
-import MyVideosPage from './pages/MyVideosPage'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -30,9 +30,9 @@ function App() {
               <UploadVideoPage />
             </ProtectedRoute>
           } />
-          <Route path='/my-videos' element={
+          <Route path='/profile' element={
             <ProtectedRoute>
-              <MyVideosPage />
+              <ProfilePage />
             </ProtectedRoute>
           } />
         </Routes>

@@ -22,8 +22,7 @@ const drawerWidth = 240;
 
 const navLinks = [
   { label: "Feed", to: "/feed" },
-  { label: "Upload", to: "/video-upload" },
-  { label: "My Videos", to: "/my-videos" },
+  { label: "Upload", to: "/video-upload" }
 ];
 
 interface Props {
@@ -35,8 +34,6 @@ export default function Navbar(props: Props) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
-  // ✅ check if user is authenticated
   const isAuthenticated = Boolean(localStorage.getItem("auth_token"));
 
   const handleDrawerToggle = () => {
@@ -55,7 +52,7 @@ export default function Navbar(props: Props) {
   const handleLogout = () => {
     localStorage.clear();
     handleMenuClose();
-    navigate("/"); // redirect to home page
+    navigate("/")
   };
 
   const drawer = (

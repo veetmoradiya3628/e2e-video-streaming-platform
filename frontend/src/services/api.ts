@@ -39,3 +39,9 @@ export const feedVideosApi = {
     return api.get("/videos/list");
   },
 };
+
+export const userApi = {
+  getUserInfo: async (userId: string) => {
+    return api.get(`/users/get-info/${userId}`);
+  },
+};
