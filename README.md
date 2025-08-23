@@ -1,13 +1,23 @@
 # E2E Video Streaming Platform
 
-## Overview
+## Table of Contents
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Why HLS (HTTP Live Streaming)?](#why-hls-http-live-streaming)
+4. [Architecture](#architecture)
+5. [Project Structure](#project-structure)
+6. [Getting Started](#getting-started)
+7. [Screenshots](#screenshots)
+8. [Future Requirements](#future-requirements)
 
-This project is a full-stack, end-to-end video upload and sharing platform. It allows users to upload, share, and watch videos, with scalable cloud-native backend and a modern React frontend.
+---
+
+## Overview
+E2E Video Streaming Platform is a modern, full-stack application for uploading, sharing, and watching videos. It leverages a scalable, cloud-native backend and a beautiful, responsive React frontend. The platform is designed for creators and viewers, supporting adaptive streaming, comments, and robust AWS-powered infrastructure.
 
 ---
 
 ## Features
-
 - User authentication (Google sign-in, email/password)
 - Video upload with progress and thumbnail
 - Video feed and detail pages
@@ -19,12 +29,49 @@ This project is a full-stack, end-to-end video upload and sharing platform. It a
 - AWS DynamoDB for metadata
 - AWS SQS for event-driven processing
 - GitHub Actions CI/CD for infrastructure and code
+- Swagger UI for API documentation
 
+---
+
+## Why HLS (HTTP Live Streaming)?
+
+### Use Cases
+- Adaptive video streaming for web and mobile
+- Live event broadcasting (sports, concerts, webinars)
+- Video-on-demand platforms (YouTube, Netflix, etc.)
+- E-learning and online courses
+- Corporate video delivery and internal communications
+
+### Importance
+- HLS is the industry standard for delivering video over the internet, supported by all major browsers and devices.
+- Enables smooth playback by adapting video quality to the viewer’s network conditions.
+- Essential for scalable, reliable, and secure video delivery at global scale.
+
+### Advantages
+- **Adaptive Bitrate Streaming:** Automatically adjusts video quality for the best user experience.
+- **Cross-Platform Support:** Works on iOS, Android, desktop browsers, smart TVs, and more.
+- **Scalability:** Easily integrates with CDNs for massive audience reach.
+- **Resilience:** Handles network interruptions gracefully, resuming playback when possible.
+- **Security:** Supports encryption and secure key delivery.
+
+### Learn More
+- [Apple HLS Overview](https://developer.apple.com/streaming/)
+- [Wowza: What is HLS?](https://www.wowza.com/blog/what-is-hls)
+- [Mux: HLS Streaming Explained](https://www.mux.com/learn/hls)
+- [Wikipedia: HTTP Live Streaming](https://en.wikipedia.org/wiki/HTTP_Live_Streaming)
+
+---
+
+## Architecture
+- **Frontend:** React + Vite + MUI + Tailwind CSS
+- **Backend:** Express.js, AWS SDK
+- **Storage:** S3 (videos), DynamoDB (metadata)
+- **Processing:** Lambda (FFmpeg), SQS (event queue)
+- **CI/CD:** GitHub Actions
 
 ---
 
 ## Project Structure
-
 ```
 ├── backend/         # Express.js API, AWS integration, video upload logic
 ├── frontend/        # React app (Vite, MUI, Tailwind CSS)
@@ -39,7 +86,6 @@ This project is a full-stack, end-to-end video upload and sharing platform. It a
 ---
 
 ## Getting Started
-
 ### Prerequisites
 - Node.js 18+
 - AWS account & credentials
@@ -49,24 +95,24 @@ This project is a full-stack, end-to-end video upload and sharing platform. It a
 ```sh
 cd backend
 cp .env.example .env # Fill in AWS and DB config
+npm install
 npm run dev
 ```
 
 ### Frontend Setup
 ```sh
 cd frontend
+npm install
 npm run dev
 ```
 
 ### Infrastructure (AWS)
-- All infra is provisioned via GitHub Actions workflows in `.github/workflows/`
-- See `deploy-master.yml` for orchestrated deployment
+- All infrastructure is provisioned via GitHub Actions workflows in `.github/workflows/`
+- See `deploy-master.yml` for orchestrated deployment of DynamoDB, SQS, S3, and Lambda
 
 ---
 
-
 ## Screenshots
-
 ### Application Architecture
 ![Application Architecture](assets/application-architecture.png)
 *A high-level overview of the platform’s architecture, showing the flow between frontend, backend, AWS services, and CI/CD pipelines.*
@@ -107,20 +153,13 @@ npm run dev
 ![Profile Page](assets/profile-page.png)
 *Displays the user’s profile information and a list of their uploaded videos for easy management.*
 
----
-
-## Architecture
-
-- **Frontend:** React + Vite + MUI + Tailwind CSS
-- **Backend:** Express.js, AWS SDK
-- **Storage:** S3 (videos), DynamoDB (metadata)
-- **Processing:** Lambda (FFmpeg), SQS (event queue)
-- **CI/CD:** GitHub Actions
+### Swagger page
+![Swagger Page](assets/swagger-doc.png)
+*Swagger API documentation for all backend endpoints, supporting easy testing and integration.*
 
 ---
 
 ## Future Requirements
-
 - Video transcoding to multiple resolutions
 - User roles (admin, moderator, creator, viewer)
 - Video analytics dashboard
@@ -131,9 +170,3 @@ npm run dev
 - Multi-language support
 - Accessibility improvements
 - Mobile app (React Native or Flutter)
-
----
-
-## License
-
-MIT
