@@ -1,21 +1,66 @@
 import { useState } from "react";
-import { Container, Typography, Box, Divider } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Box,
+  Divider,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import VideoPlayer from "../components/VideoPlayer";
 import CommentSection from "../components/CommentSection";
 import { useLocation } from "react-router-dom";
+import { videoApi } from "../services/api";
 
 const VideoDetailPage = () => {
   const location = useLocation();
   const video = location.state;
-  console.log("Video from state:", video);
 
   const [comments, setComments] = useState(video.comments || []);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] =
+    useState<"success" | "error">("success");
 
-  const handleAddComment = (text: string) => {
-    setComments([
-      ...comments,
-      { id: Date.now().toString(), user: "You", text },
-    ]);
+  const handleCloseAlert = () => setAlertOpen(false);
+
+  const handleAddComment = async (text: string) => {
+    const newCommentBody = {
+      userId: localStorage.getItem("userId"),
+      commentText: text,
+      username: localStorage.getItem("username") || "You",
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      const response = await videoApi.postComment(video.videoId, newCommentBody);
+      const savedComment = response?.data.comment || newCommentBody;
+      setComments((prev: any) => [...prev, savedComment]);
+      setAlertMessage("Comment added successfully!");
+      setAlertSeverity("success");
+      setAlertOpen(true);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      setAlertMessage("Failed to add comment. Please try again.");
+      setAlertSeverity("error");
+      setAlertOpen(true);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await videoApi.deleteComment(video.videoId, commentId);
+      setComments((prev: any) =>
+        prev.filter((c: any) => c.commentId !== commentId)
+      );
+      setAlertMessage("Comment deleted successfully!");
+      setAlertSeverity("success");
+      setAlertOpen(true);
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      setAlertMessage("Failed to delete comment. Please try again.");
+      setAlertSeverity("error");
+      setAlertOpen(true);
+    }
   };
 
   return (
@@ -36,7 +81,22 @@ const VideoDetailPage = () => {
         {video.description}
       </Typography>
       <Divider />
-      <CommentSection comments={comments} onAddComment={handleAddComment} />
+      <CommentSection comments={comments} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} />
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseAlert}
+          severity={alertSeverity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { Video } from "../models/video";
+import { Video, VideoComment } from "../models/video";
 import { dynamoDB } from "../config/aws";
 import { uploadToS3 } from "../services/s3Service";
 import { getAllItems } from "../services/dynamoDBService";
@@ -81,6 +81,10 @@ export const listVideos = async (req: Request, res: Response) => {
         video.videoKey.split(".")[0] +
         "/480p/index.m3u8",
       username: userMap[video.userId] || "Unknown",
+      comments: video.comments.map((comment: any) => ({
+        ...comment,
+        username: userMap[comment.userId] || "Unknown",
+      })),
     }));
     return res.status(200).json({
       message: "videos data retrieved",
@@ -118,7 +122,8 @@ export const commentOnVideo = async (req: Request, res: Response) => {
       });
     }
 
-    const newComment = {
+    const newComment: VideoComment = {
+      commentId: uuidv4(),
       commentText,
       userId,
       createdAt: new Date().toISOString(),
@@ -134,6 +139,18 @@ export const commentOnVideo = async (req: Request, res: Response) => {
       })
       .promise();
 
+    const userData = await getAllItems(
+      process.env.DYNAMODB_USERS_TABLE as string
+    );
+
+    const userMap: Record<string, string> = {};
+    userData.forEach((user) => {
+      userMap[user.userId] = user.username;
+    });
+    newComment["username"] = "Unknown";
+    if (userMap[newComment.userId]) {
+      newComment["username"] = userMap[newComment.userId];
+    }
     res.status(200).json({
       message: "Comment added successfully",
       comment: newComment,
@@ -142,6 +159,60 @@ export const commentOnVideo = async (req: Request, res: Response) => {
     console.error(err);
     res.status(500).json({
       message: "Failed to add comment",
+    });
+  }
+};
+
+export const deleteCommentFromVideo = async (req: Request, res: Response) => {
+  try {
+    const { videoId, commentId } = req.params;
+
+    if (!videoId || !commentId) {
+      return res.status(400).json({
+        message: "Missing required fields: videoId or commentId.",
+      });
+    }
+
+    const video = await dynamoDB
+      .get({
+        TableName: process.env.DYNAMODB_VIDEOS_TABLE!,
+        Key: { videoId },
+      })
+      .promise();
+
+    if (!video.Item) {
+      return res.status(404).json({
+        message: "Video not found",
+      });
+    }
+
+    const commentIndex = video.Item.comments.findIndex(
+      (comment: VideoComment) => comment.commentId === commentId
+    );
+
+    if (commentIndex === -1) {
+      return res.status(404).json({
+        message: "Comment not found",
+      });
+    }
+
+    video.Item.comments.splice(commentIndex, 1);
+    video.Item.updatedAt = new Date().toISOString();
+
+    await dynamoDB
+      .put({
+        TableName: process.env.DYNAMODB_VIDEOS_TABLE!,
+        Item: video.Item,
+      })
+      .promise();
+
+    res.status(200).json({
+      message: "Comment deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to delete comment",
     });
   }
 };

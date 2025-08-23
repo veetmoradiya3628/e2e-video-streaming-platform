@@ -9,7 +9,7 @@ interface VideoCardProps {
   status: "UPLOADING" | "PROCESSING" | "UNPUBLISHED" | "PUBLISHED" | "FAILED";
   src: string;
   description?: string;
-  comments?: Array<{ userId: string; commentText: string; createdAt: string }>;
+  comments?: Array<{ commentId?: string, userId: string; commentText: string; createdAt: string }>;
   onClick?: () => void;
 }
 

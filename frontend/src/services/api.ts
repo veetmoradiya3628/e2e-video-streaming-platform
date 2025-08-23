@@ -16,6 +16,13 @@ export const videoApi = {
   getById: async (id: string) => {
     return api.get(`/videos/${id}`);
   },
+  postComment: async (videoId: string, body: any) => {
+    return api.post(`/videos/comment/${videoId}`, body);
+  },
+
+  deleteComment: async (videoId: string, commentId: string) => {
+    return api.delete(`/videos/comment/${videoId}/${commentId}`);
+  },
 };
 
 export const authApi = {

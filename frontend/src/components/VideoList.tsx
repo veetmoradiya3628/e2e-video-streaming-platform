@@ -15,7 +15,7 @@ interface VideoListProps {
     createdAt: string;
     username: string;
     src: string;
-    comments: Array<{ userId: string; commentText: string; createdAt: string }>;
+    comments: Array<{ commentId?: string, userId: string; commentText: string; createdAt: string }>;
     status: "UPLOADING" | "PROCESSING" | "UNPUBLISHED" | "PUBLISHED" | "FAILED";
     onClick?: () => void;
   }>;

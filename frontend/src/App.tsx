@@ -6,7 +6,6 @@ import VideoDetailPage from './pages/VideoDetailPage'
 import UploadVideoPage from './pages/UploadVideoPage'
 import MyVideosPage from './pages/MyVideosPage'
 import Navbar from './components/Navbar'
-import VideoPlayer from './components/VideoPlayer'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {

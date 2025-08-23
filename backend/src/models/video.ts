@@ -13,8 +13,10 @@ export interface Video {
   updatedAt: string;
 }
 
-interface VideoComment {
+export interface VideoComment {
+  commentId?: string;
   commentText: string;
   userId: string;
   createdAt: string;
+  username?: string;
 }
