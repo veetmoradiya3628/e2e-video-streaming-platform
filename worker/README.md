@@ -1,5 +1,3 @@
-
-
 # Worker Lambda Function
 
 This directory contains the AWS Lambda function responsible for processing video files (e.g., transcoding, thumbnail generation) in the E2E Video Streaming Platform. The function is triggered by SQS events published from S3 uploads.

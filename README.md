@@ -106,14 +106,19 @@ npm install
 npm run dev
 ```
 
-### Infrastructure (AWS)
-- All infrastructure is provisioned via GitHub Actions workflows in `.github/workflows/`
-- See `deploy-master.yml` for orchestrated deployment of DynamoDB, SQS, S3, and Lambda
-
-
 ### Worker Lambda Function
 
 See [`worker/README.md`](worker/README.md) for details on the Lambda function that processes video files (transcoding, thumbnails, etc.) in response to S3/SQS events.
+
+### Deployment Automation
+
+This Lambda function is automatically built and deployed using GitHub Actions workflows defined in the `.github/workflows/` directory of the repository.
+
+- **Workflow:** [`provision-lambda-function.yml`](../.github/workflows/provision-lambda-function.yml)
+  - **Description:** This workflow packages the Lambda code, publishes the FFmpeg layer, creates or updates the Lambda function, and configures SQS triggers and IAM roles. It ensures the Lambda is always up-to-date and properly integrated with the rest of the AWS infrastructure.
+
+For full deployment orchestration (including S3, SQS, DynamoDB, and Lambda), see [`deploy-master.yml`](../.github/workflows/deploy-master.yml).
+
 ---
 
 ## Screenshots
